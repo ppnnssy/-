@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="./a.js"></script>
+    <style>
+      .sankeBody {
+        height: 10px;
+        width: 10px;
+        position: absolute;
+      }
+      .foodbody {
+        height: 10px;
+        width: 10px;
+        position: absolute;
+      }
+      .red {
+        background-color: red;
+      }
+      .gray {
+        background-color: gray;
+      }
+      .orange {
+        background-color: rgb(218, 234, 45);
+      }
+      #board {
+        width: 500px;
+        height: 500px;
+        margin: 50px auto;
+        border: 1px solid black;
+        position: relative;
+      }
+    </style>
+  </head>
+
+  <body>
+    <button id="start">开始</button>
+    <button id="restart">重新开始</button>
+    <button id="stop">结束</button>
+
+    <div id="board"></div>
+  </body>
+  <script>
+    // 初始蛇身
+    let snake = [
+      [20, 30],
+      [19, 30],
+    ];
+    //方向控制
+    let direction = "d";
+    let nextDirections = []; //一个2长度的数组，存储接下来的两个方向变化
+    const turn = {
+      w: [0, -1],
+      s: [0, 1],
+      a: [-1, 0],
+      d: [1, 0],
+    };
+    let food = [0, 0];
+    let timer; //贪吃蛇动起来的计时器
+    let board = document.getElementById("board");
+
+    // 生成新食物的随机函数
+    function newFood() {
+      let xFood, yFood;
+      do {
+        xFood = Math.floor(Math.random() * 50);
+        yFood = Math.floor(Math.random() * 50);
+        // 检查食物是否和蛇身或旧食物重合
+      } while (
+        checkIsDead([xFood, yFood], snake) &&
+        checkIsEat([xFood, yFood], food)
+      );
+
+      food = [xFood, yFood];
+    }
+
+    // 绘制蛇身
+    function drawSnake() {
+      // board.innerHTML = "";
+      let snakeBody = board.getElementsByClassName("sankeBody");
+      while (snakeBody.length > 0) {
+        board.removeChild(snakeBody[0]);
+      }
+      snake.forEach((dot, index) => {
+        let dom = document.createElement("div");
+        dom.classList.add("sankeBody");
+        if (index == 0) {
+          dom.classList.add("red");
+        } else {
+          dom.classList.add("gray");
+        }
+        dom.style.left = dot[0] * 10 + "px";
+        dom.style.top = dot[1] * 10 + "px";
+        board.appendChild(dom);
+      });
+    }
+
+    function drawFood() {
+      // 移除旧食物
+      var oldFood = document.getElementById("food");
+      oldFood && board.removeChild(oldFood);
+
+      // 绘制新食物
+      newFood(); //随机生成一个食物的位置
+      let dom = document.createElement("div");
+      dom.id = "food";
+      dom.classList.add("foodbody");
+      dom.classList.add("orange");
+      dom.style.left = food[0] * 10 + "px";
+      dom.style.top = food[1] * 10 + "px";
+      board.appendChild(dom);
+    }
+    //页面展示时绘制初始页面
+    drawSnake();
+    drawFood();
+
+    function changeDirection(event) {
+      // 事件处理逻辑
+      console.log("按下键盘键:", event.key);
+      // 方向缓冲池最大为2
+      if (nextDirections.length >= 2) {
+        return;
+      }
+
+      let key = event.key;
+      if (key !== "w" && key !== "a" && key !== "s" && key !== "d") {
+        return;
+      }
+      nextDirections.push(key);
+    }
+    // 控制蛇方向的防抖函数
+
+    // function boundChangeDirection(func, delay, immediate) {
+    //   let timerId;
+    //   let oldHead = [...snake[0]];
+    //   return function (event) {
+    //     let newHead = [...snake[0]];
+    //     // 如果两个头相同，说明按键速度过快还有没转向成功
+    //     console.log("oldHead", oldHead);
+    //     console.log("newHead", newHead);
+    //     if (oldHead[0] == newHead[0] && oldHead[1] == newHead[1]) {
+    //       return;
+    //     }
+    //     const context = this; //保存环境
+    //     const args = arguments;
+    //     if (
+    //       event.key !== "w" &&
+    //       event.key !== "a" &&
+    //       event.key !== "s" &&
+    //       event.key !== "d"
+    //     )
+    //       return;
+
+    //     // 立即执行一次
+    //     if (immediate && !timerId) {
+    //       func.apply(context, [event.key]);
+    //       oldHead = newHead;
+    //     }
+    //     clearTimeout(timerId);
+
+    //     timerId = setTimeout(function () {
+    //       func.apply(context, [event.key]);
+    //       oldHead = newHead;
+    //     }, delay);
+    //   };
+    // }
+    // let bound = boundChangeDirection(changeDirection, 1000, true);
+
+    // 检测函数
+    // 检测是否死亡
+    function checkIsDead(head, body) {
+      if (head[0] < 0 || head[0] > 49 || head[1] < 0 || head[1] > 49)
+        return true;
+      for (let i = 0; i < body.length; i++) {
+        // 吃到自己
+        if (head[0] == body[i][0] && head[1] == body[i][1]) return true;
+        // 撞墙
+      }
+      return false;
+    }
+    // 检查是否吃到食物
+    function checkIsEat(head, food) {
+      if (head[0] == food[0] && head[1] == food[1]) return true;
+      return false;
+    }
+
+    // 检查下一个方向是否可用
+    function isDirectionAvailable(newDirection, oldDirection) {
+      switch (newDirection) {
+        case "w":
+          if (oldDirection !== "s") {
+            return true;
+          }
+          break;
+        case "s":
+          if (oldDirection !== "w") {
+            return true;
+          }
+          break;
+        case "a":
+          if (oldDirection !== "d") {
+            return true;
+          }
+          break;
+        case "d":
+          if (oldDirection !== "a") {
+            return true;
+          }
+          break;
+        default:
+          return false;
+      }
+      return false;
+    }
+    // 开始游戏
+    function start() {
+      clearInterval(timer);
+      timer = setInterval(() => {
+        // 正常情况下，蛇正常走路
+        let len = snake.length;
+        let tail = snake[len - 1];
+        let head = snake[0];
+
+        if (nextDirections.length > 0) {
+          newDirection = nextDirections[0];
+          // 检查是否和旧方向相反
+          if (isDirectionAvailable(newDirection, direction)) {
+            direction = newDirection;
+          }
+          nextDirections.shift();
+        }
+
+        newHead = [head[0] + turn[direction][0], head[1] + turn[direction][1]];
+
+        // 检查新头部是否和身体重合，是否撞墙
+        if (checkIsDead(newHead, snake)) {
+          stop();
+          alert(`游戏结束，您的分数是：${len}`);
+          return;
+        }
+
+        // 检查是否吃到食物
+        if (!checkIsEat(newHead, food)) {
+          // 没吃到，蛇尾-1，吃到则不用
+          snake.pop();
+        } else {
+          // 生成新的食物
+          drawFood();
+        }
+        // 添加新头部
+        snake.unshift(newHead);
+        drawSnake();
+      }, 200);
+      // 添加控制方向的键盘响应事件
+      document.addEventListener("keydown", changeDirection);
+    }
+
+    function stop() {
+      clearInterval(timer);
+      document.removeEventListener("keydown", changeDirection);
+    }
+
+    const startBtn = document.getElementById("start");
+
+    startBtn.addEventListener("click", start);
+    const reStartBtn = document.getElementById("restart");
+    reStartBtn.addEventListener("click", function () {
+      snake = [
+        [20, 30],
+        [19, 30],
+      ];
+      direction = "d";
+      drawSnake();
+      drawFood();
+      start();
+    });
+    const stopBtn = document.getElementById("stop");
+    stopBtn.addEventListener("click", stop);
+  </script>
+</html>
