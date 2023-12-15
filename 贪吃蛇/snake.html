@@ -130,43 +130,6 @@
       }
       nextDirections.push(key);
     }
-    // 控制蛇方向的防抖函数
-
-    // function boundChangeDirection(func, delay, immediate) {
-    //   let timerId;
-    //   let oldHead = [...snake[0]];
-    //   return function (event) {
-    //     let newHead = [...snake[0]];
-    //     // 如果两个头相同，说明按键速度过快还有没转向成功
-    //     console.log("oldHead", oldHead);
-    //     console.log("newHead", newHead);
-    //     if (oldHead[0] == newHead[0] && oldHead[1] == newHead[1]) {
-    //       return;
-    //     }
-    //     const context = this; //保存环境
-    //     const args = arguments;
-    //     if (
-    //       event.key !== "w" &&
-    //       event.key !== "a" &&
-    //       event.key !== "s" &&
-    //       event.key !== "d"
-    //     )
-    //       return;
-
-    //     // 立即执行一次
-    //     if (immediate && !timerId) {
-    //       func.apply(context, [event.key]);
-    //       oldHead = newHead;
-    //     }
-    //     clearTimeout(timerId);
-
-    //     timerId = setTimeout(function () {
-    //       func.apply(context, [event.key]);
-    //       oldHead = newHead;
-    //     }, delay);
-    //   };
-    // }
-    // let bound = boundChangeDirection(changeDirection, 1000, true);
 
     // 检测函数
     // 检测是否死亡
@@ -280,3 +243,4 @@
     stopBtn.addEventListener("click", stop);
   </script>
 </html>
+<!-- TODO添加难度控制 -->
